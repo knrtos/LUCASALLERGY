@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Allergy Table</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: transparent;
+            color: #054607;
+            font-family: "Comfortaa", sans-serif;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px;
+            font-size: 20px;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        th, td {
+            border: 5px solid #498202;
+            padding: 20px;
+            text-align: left;
+            color: #054607;
+            background: rgba(254, 255, 234);
+            border-radius: 5px; /* Rounded edges */
+        }
+
+        th {
+            background-color: #82A436;
+            color: white;
+            font-weight: bold;
+        }
+
+        td:hover {
+            background-color: #447804;
+            color: white;
+            cursor: pointer;
+        }
+
+        .bg-warning {
+            background-color: #498202;
+            color: white;
+        }
+
+        /* Centering and enlarging checkboxes */
+        .checkbox {
+            width: 30px; /* Width of the checkbox */
+            height: 30px; /* Height of the checkbox */
+            display: block; /* Make it a block element */
+            margin: 0 auto; /* Center the checkbox */
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var lucasDefaultAllergyList = [
+            "Animals", 
+            "Foods", 
+            "Drugs", 
+            "Dust Mites", 
+            "Insect Bites/Sting", 
+            "Others"
+        ];
+
+        // Load data from local storage or initialize with default values
+        var lucasAllergyStorage = JSON.parse(localStorage.getItem('lucasCustomAllergyData')) || lucasDefaultAllergyList.map(allergy => ({
+            allergy: allergy,
+            yes: false,
+            no: false,
+            type: '--' // Set default type as "--"
+        }));
+
+        var tbl = '<table class="table table-hover">';
+        tbl += '<thead><tr><th>ALLERGIES</th><th>YES</th><th>NO</th><th>TYPE</th></tr></thead>';
+        tbl += '<tbody>';
+        
+        $.each(lucasAllergyStorage, function(index, item) {
+            tbl += `<tr>
+                        <td><div class="row_data lucas-allergy" edit_type="click" contenteditable="false">${item.allergy}</div></td>
+                        <td><input type="checkbox" class="checkbox lucas-yes-checkbox" ${item.yes ? 'checked' : ''} /></td>
+                        <td><input type="checkbox" class="checkbox lucas-no-checkbox" ${item.no ? 'checked' : ''} /></td>
+                        <td><div class="row_data lucas-type" edit_type="click" contenteditable="false">${item.type || '--'}</div></td>
+                    </tr>`;
+        });
+        
+        tbl += '</tbody></table>';
+        
+        $('.tbl_user_data').html(tbl);
+
+        // Editable functionality for the allergy and type columns
+        $(document).on('click', '.row_data', function(event) {
+            event.preventDefault(); 
+            if ($(this).attr('edit_type') == 'button') return false;
+            $(this).attr('contenteditable', 'true').addClass('bg-warning').focus();
+        });
+
+        $(document).on('focusout', '.row_data', function(event) {
+            event.preventDefault();
+            if ($(this).attr('edit_type') == 'button') return false;
+            $(this).removeClass('bg-warning');
+            saveLucasAllergyData(); // Save data on focus out
+            $(this).attr('contenteditable', 'false');
+        });
+
+        // Save checkbox state and editable fields to local storage
+        function saveLucasAllergyData() {
+            var updatedLucasAllergyData = [];
+            $('tbody tr').each(function() {
+                var allergy = $(this).find('.lucas-allergy').text();
+                var yes = $(this).find('.lucas-yes-checkbox').is(':checked');
+                var no = $(this).find('.lucas-no-checkbox').is(':checked');
+                var type = $(this).find('.lucas-type').text() || '--';
+                updatedLucasAllergyData.push({ allergy: allergy, yes: yes, no: no, type: type });
+            });
+            localStorage.setItem('lucasCustomAllergyData', JSON.stringify(updatedLucasAllergyData));
+        }
+
+        // Change checkbox behavior for YES column
+        $(document).on('change', '.lucas-yes-checkbox', function() {
+            saveLucasAllergyData();
+        });
+
+        // Change checkbox behavior for NO column
+        $(document).on('change', '.lucas-no-checkbox', function() {
+            saveLucasAllergyData();
+        });
+    });
+    </script>
+
+</head>
+<body>
+    <div class="tbl_user_data"></div>
+</body>
+</html>
